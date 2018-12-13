@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace:名称空间（跟当前文件同名的接口文件的全限定名） -->
+
+<mapper namespace="com.SSM.mapper.Dep_transMapper">
+	
+	<resultMap type="Dep_trans" id="dep_transInfoMap">
+		<!-- 主键映射 -->
+		<id column="dep_trans_id" property="dep_trans_id"/>
+		<!-- 其他属性映射 -->
+		<result column="trans_type" property="trans_type"/>
+		<result column="trans_reason" property="trans_reason"/>
+		<result column="note" property="note"/>
+		<result column="trans_date" property="trans_date"/>
+		 <!-- 包含的对象映射关系 -->
+		   <!-- property：类中对象的名字   javaType：该对象的类型，可以用简写类型 -->
+		<association property="employee" javaType="Employee">
+			<id column="emp_id" property="emp_id"/>
+			<result column="emp_name" property="emp_name"/>
+		</association>
+		<association property="department" javaType="Department">
+			<id column="after_dep" property="dep_id"/>
+			<result column="dep_name" property="dep_name"/>
+		</association> 
+	</resultMap>
+	
+	<resultMap type="Employee" id="employeeInfoMap">
+		<!-- 主键映射 -->
+		<id column="emp_id" property="emp_id"/>
+		<!-- 其他属性映射 -->
+		<result column="emp_name" property="emp_name"/>
+		  <!-- 包含的对象映射关系 -->
+		   <!-- property：类中对象的名字   javaType：该对象的类型，可以用简写类型 -->
+		<association property="department" javaType="Department">
+			<id column="dep_id" property="dep_id"/>
+			<result column="dep_name" property="dep_name"/>
+		</association>
+	</resultMap>
+	
+	<!-- 显示部门调转的所有信息 -->
+	<select id="selectAllDep_trans" resultMap="dep_transInfoMap">
+		SELECT dep_trans_id,dep_trans.emp_id,emp_name,dep_name,trans_type,trans_reason,note,trans_date
+		FROM dep_trans,employee,department
+		where dep_trans.emp_id = employee.emp_id and dep_trans.after_dep = department.dep_id
+	</select>
+	
+	<!-- 通过员工id查询部门调转信息 -->
+	<select id="selectEmployeeDep_trans" parameterType="int" resultMap="dep_transInfoMap">
+		SELECT dep_trans_id,dep_trans.emp_id,emp_name,dep_name,trans_type,trans_reason,note,trans_date
+		FROM dep_trans,employee,department
+		where dep_trans.emp_id = employee.emp_id and dep_trans.after_dep = department.dep_id and dep_trans.emp_id = #{emp_id}
+	</select>
+	
+	<!-- 根据调转信息id删除员工的调转信息 -->
+	<delete id="deleteEmployeeDep_trans" parameterType="int">
+		delete
+		from dep_trans
+		where dep_trans_id = #{dep_trans_id}
+	</delete>
+	
+	<!-- 显示修改前的员工部门调转信息 -->
+	<select id="selectDep_transById_update" parameterType="int" resultMap="dep_transInfoMap">
+		SELECT dep_trans_id,emp_id,after_dep,trans_type,trans_reason,note,trans_date
+        FROM dep_trans
+        WHERE dep_trans_id = #{dep_trans_id}
+	</select>
+	
+	<!-- 根据调转信息id修改员工的调转信息 -->
+	<update id="updateDep_trans" parameterType="Dep_trans">
+		update dep_trans
+		set after_dep=#{department.dep_id},trans_type=#{trans_type},
+			trans_reason=#{trans_reason},note=#{note},trans_date=#{trans_date}
+		where dep_trans_id = #{dep_trans_id} 
+	</update>
+	
+	<!-- 显示所有员工的部分信息 -->
+	<select id="selectAllEmployee" resultMap="employeeInfoMap" >
+		SELECT emp_id,emp_name,dep_name
+		FROM employee,department
+		WHERE employee.dep_id = department.dep_id and emp_id not in(SELECT emp_id from dimission)
+	</select>
+	
+	<!-- 查询员工的部分信息 -->
+	<select id="selectEmployeeById" parameterType="int" resultMap="employeeInfoMap">
+		SELECT emp_id,emp_name,dep_name
+		FROM employee,department
+		WHERE employee.dep_id = department.dep_id and emp_id not in(SELECT emp_id from dimission) AND emp_id = #{emp_id}
+	</select>
+	
+	<!-- 调动之前显示已有的信息，不用手动填写 -->
+	<select id="selectNowDepartmentById" parameterType="int" resultMap="employeeInfoMap">
+		select emp_id,employee.dep_id
+		from employee,department
+		where employee.dep_id = department.dep_id and emp_id = #{emp_id}
+	</select>
+	
+	<!-- 员工的部门调动 -->
+	<insert id="addDep_trans" parameterType="Dep_trans">
+		insert into dep_trans(emp_id,after_dep,trans_type,trans_reason,note,trans_date)
+		value(#{employee.emp_id},#{department.dep_id},#{trans_type},#{trans_reason},#{note},#{trans_date})
+	</insert>
+	
+	<!-- 员工进行调动之后，相应的修改员工表的部门id -->
+	<update id="updateEmployeeDepId" parameterType = "Dep_trans" >
+		UPDATE employee SET dep_id = #{department.dep_id} WHERE emp_id = #{employee.emp_id}
+	</update>
+</mapper>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace:名称空间（跟当前文件同名的接口文件的全限定名） -->
+<mapper namespace="com.SSM.mapper.EmployeeMapper">
+
+
+<resultMap type="Employee" id="employeeInfoMap">
+		<!-- 主键映射 -->
+		<id column="emp_id" property="emp_id"/>
+		<!-- 其他属性映射 -->
+		<result column="emp_name" property="emp_name"/>
+		<result column="emp_sex" property="emp_sex"/>
+		<result column="birthday" property="birthday"/>
+		<result column="entry_date" property="entry_date"/>
+		<result column="work_date" property="work_date"/>
+		<result column="work_type" property="work_type"/>
+		<result column="nation" property="nation"/>
+		<result column="emp_phone" property="emp_phone"/>
+		<result column="email" property="email"/>
+		  <!-- 包含的对象映射关系 -->
+		   <!-- property：类中对象的名字   javaType：该对象的类型，可以用简写类型 -->
+		<association property="department" javaType="Department">
+			<id column="dep_id" property="dep_id"/>
+			<result column="dep_name" property="dep_name"/>
+		</association>
+		<association property="post" javaType="Post">
+			<id column="post_id" property="post_id"/>
+			<result column="post_name" property="post_name"/>
+		</association> 
+	</resultMap>
+	
+<select id="selectEmployeeById" parameterType="int" resultMap="employeeInfoMap">
+	SELECT emp_id,emp_name,emp_sex,birthday,dep_name,post_name,entry_date,work_date,work_type,nation,emp_phone,email
+    from employee,department,post
+    where employee.dep_id = department.dep_id and employee.post_id = post.post_id 
+	and emp_id=#{id}
+</select>
+
+<select id="selectEmployeeById_update" parameterType="int" resultMap="employeeInfoMap">
+	SELECT emp_id,emp_name,emp_sex,birthday,dep_id,post_id,entry_date,work_date,work_type,nation,emp_phone,email
+    from employee
+	where emp_id=#{id}
+</select> 
+
+<select id="selectAllEmployee" resultMap="employeeInfoMap">
+	SELECT emp_id,emp_name,emp_sex,birthday,dep_name,post_name,entry_date,work_date,work_type,nation,emp_phone,email
+from employee,department,post
+where employee.dep_id = department.dep_id and employee.post_id = post.post_id and emp_id not in(SELECT emp_id from dimission )
+order by emp_id
+</select>
+
+<delete id="deleteEmployeeById" parameterType="int" >
+  	delete from employee where emp_id = #{id}
+</delete>
+
+<insert id="addEmployee" parameterType="Employee">
+	insert 
+	into employee
+	(emp_name,emp_sex,birthday,dep_id,post_id,entry_date,work_date,work_type,nation,emp_phone,email) 
+	values
+	(#{emp_name},#{emp_sex},#{birthday},#{department.dep_id},#{post.post_id},#{entry_date},#{work_date},#{work_type},#{nation},#{emp_phone},#{email})
+</insert>
+<update id="updateEmployeeById" parameterType="Employee">
+	update employee set 
+	emp_name = #{emp_name},
+	emp_sex = #{emp_sex},
+	birthday = #{birthday},
+	dep_id = #{department.dep_id},
+	post_id = #{post.post_id},
+	entry_date = #{entry_date},
+	work_date = #{work_date},
+	work_type = #{work_type},
+	nation = #{nation},
+	emp_phone = #{emp_phone},
+	email = #{email}
+	where emp_id = #{emp_id}
+</update>
+
+</mapper>

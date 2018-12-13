@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.SSM.mapper.PostMapper">
+	
+	<resultMap type="Post" id="postInfoMap">
+		<!-- 主键映射 -->
+		<id column="post_id" property="post_id"/>
+		<!-- 其他属性映射 -->
+		<result column="post_name" property="post_name"/>
+		<result column="post_type" property="post_type"/>
+		<result column="strength" property="strength"/>
+		<!-- 集合的映射 -->
+		<!-- property:post中对象的名字        ofType：对象的类型       collection：表示集合映射-->
+		<collection property="employeeList" ofType="employee">
+			<id column="emp_id" property="emp_id"/>
+			<result column="emp_name" property="emp_name"/>
+			
+		</collection>
+	</resultMap>
+	
+	
+	<!-- 通过岗位编号查询岗位信息，条件查询 
+	#{post_id}页面jsp的name  parameterType="int"传过来的参数类型post——id为int
+	-->
+	<select id="selectPostidById" parameterType="int" resultMap="postInfoMap">
+		SELECT post_id,post_name,post_type,strength
+    	from post
+   		 where  post_id=#{id}
+	</select>
+	
+	<!-- 查询所有岗位信息 -->
+	<select id="selectAllPost" resultType="post">
+		select * from post
+	</select>
+	
+	<!-- 删除岗位 -->
+	<delete id="deletePostById" parameterType="int">
+		delete from post where post_id=#{id}
+	</delete>
+	
+	<!-- 添加岗位 -->
+	<insert id="addPost" parameterType="post">
+		insert into post values(#{post_id},#{post_name},#{post_type},#{strength})
+	</insert>
+	
+	<!-- 更新岗位，先查再修改 -->
+	<select id="selectPostById" parameterType="int" resultType="post">
+		select * from post where post_id=#{id}
+	</select>
+	<update id="updatePost" parameterType="post">
+		update post set post_name =
+		#{post_name},post_type = #{post_type},strength = #{strength} where post_id = #{post_id};
+	</update>
+	
+	<!--  查询岗位下的员工-->
+		<resultMap type="Employee" id="employeeInfoMap">
+		<!-- 主键映射 -->
+		<id column="emp_id" property="emp_id"/>
+		<!-- 其他属性映射 -->
+		<result column="emp_name" property="emp_name"/>
+		<result column="emp_sex" property="emp_sex"/>
+		<result column="birthday" property="birthday"/>
+		<result column="entry_date" property="entry_date"/>
+		<result column="work_date" property="work_date"/>
+		<result column="work_type" property="work_type"/>
+		<result column="nation" property="nation"/>
+		<result column="emp_phone" property="emp_phone"/>
+		<result column="email" property="email"/>
+		  <!-- 包含的对象映射关系 -->
+		   <!-- property：类中对象的名字   javaType：该对象的类型，可以用简写类型 -->
+		<association property="department" javaType="Department">
+			<id column="dep_id" property="dep_id"/>
+			<result column="dep_name" property="dep_name"/>
+		</association>
+		<association property="post" javaType="Post">
+			<id column="post_id" property="post_id"/>
+			<result column="post_name" property="post_name"/>
+		</association> 
+	</resultMap>
+	<select id="selectPostAllEmployeeById" parameterType="int" resultMap="employeeInfoMap">
+	SELECT emp_id,emp_name,emp_sex,birthday,dep_name,post_name,entry_date,work_date,work_type,nation,emp_phone,email
+    from employee,department,post
+    where employee.dep_id = department.dep_id and employee.post_id = post.post_id 
+	and emp_id not in(SELECT emp_id from dimission )
+	and post.post_id=#{id}
+	</select>
+</mapper>

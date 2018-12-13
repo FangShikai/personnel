@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace:名称空间（跟当前文件同名的接口文件的全限定名） -->
+<mapper namespace="com.SSM.mapper.DimissionMapper">
+
+<!-- 离职信息映射 -->
+<resultMap type="dimission" id="dimissionInfoMap">
+<!-- 主键映射 -->
+<id column="dim_id" property="dim_id"/>
+<!-- 其他属性映射 -->
+<result column="dim_date" property="dim_date"/>
+<result column="dim_type" property="dim_type"/>
+<result column="dim_direc" property="dim_direc"/>
+<result column="note" property="note"/>
+
+       <!-- 包含的对象映射关系 -->
+	   <!-- property：类中对象的名字   javaType：该对象的类型，可以用简写类型 -->
+<association property="employee" javaType="employee">
+<id column="emp_id" property="emp_id"/>
+<result column="emp_name" property="emp_name"/>
+<result column="emp_sex" property="emp_sex"/>
+<result column="birthday" property="birthday"/>
+<result column="entry_date" property="entry_date"/>
+<result column="work_date" property="work_date"/>
+<result column="work_type" property="work_type"/>
+<result column="nation" property="nation"/>
+<result column="emp_phone" property="emp_phone"/>
+<result column="email" property="email"/>
+
+	<association property="department" javaType="department">
+	<id column="dep_id" property="dep_id"/>
+	<result column="dep_name" property="dep_name"/>
+	</association>
+	
+	<association property="post" javaType="Post">
+	<id column="post_id" property="post_id"/>
+	<result column="post_name" property="post_name"/>
+	</association>
+	
+</association>
+</resultMap>
+
+<!-- 在职员工映射 -->
+<resultMap type="Employee" id="employeeInfoMap">
+		<!-- 主键映射 -->
+		<id column="emp_id" property="emp_id"/>
+		<!-- 其他属性映射 -->
+		<result column="emp_name" property="emp_name"/>
+		<result column="emp_sex" property="emp_sex"/>
+		<result column="birthday" property="birthday"/>
+		<result column="entry_date" property="entry_date"/>
+		<result column="work_date" property="work_date"/>
+		<result column="work_type" property="work_type"/>
+		<result column="nation" property="nation"/>
+		<result column="emp_phone" property="emp_phone"/>
+		<result column="email" property="email"/>
+		  <!-- 包含的对象映射关系 -->
+		   <!-- property：类中对象的名字   javaType：该对象的类型，可以用简写类型 -->
+		<association property="department" javaType="Department">
+			<id column="dep_id" property="dep_id"/>
+			<result column="dep_name" property="dep_name"/>
+		</association>
+		<association property="post" javaType="Post">
+			<id column="post_id" property="post_id"/>
+			<result column="post_name" property="post_name"/>
+		</association> 
+	</resultMap>
+
+<!--查询所有在职员工  -->
+<select id="selectAllDimission_not" resultMap="employeeInfoMap">
+SELECT employee.emp_id,emp_name,emp_sex,birthday,dep_name,post_name,entry_date,work_date,work_type,nation,emp_phone,email
+from employee,department,post
+where employee.dep_id = department.dep_id and employee.post_id = post.post_id and employee.emp_id not in(select emp_id from dimission)
+</select>
+
+<!-- 查询已离职员工信息 -->
+<select id="selectAllDimission" resultMap="dimissionInfoMap">
+SELECT dim_id,employee.emp_id,emp_name,emp_sex,birthday,dep_name,post_name,entry_date,work_date,work_type,dim_date,dim_type,dim_direc,note,nation,emp_phone,email
+from employee,department,post,dimission
+where employee.dep_id = department.dep_id and employee.post_id = post.post_id and employee.emp_id = dimission.emp_id
+</select>
+
+
+
+<!-- 通过ID查询已离职员工信息 -->
+<select id="selectDimissionById" resultMap="dimissionInfoMap">
+SELECT dim_id,employee.emp_id,emp_name,emp_sex,birthday,dep_name,post_name,entry_date,work_date,work_type,dim_date,dim_type,dim_direc,note,nation,emp_phone,email
+from employee,department,post,dimission
+where employee.dep_id = department.dep_id and employee.post_id = post.post_id and employee.emp_id = dimission.emp_id 
+and employee.emp_id=#{intId}
+</select>
+
+
+
+<!--显示要修改信息的 根据id查询离职信息 -->
+<select id="selectDimissionById_show" resultMap="dimissionInfoMap">
+select dim_id,emp_id,dim_date,dim_type,dim_direc,note from dimission where emp_id = #{emp_id}
+</select>
+
+<!-- 更新离职信息 -->
+<update id="updateDimission" parameterType="Dimission">
+update dimission
+set dim_date = #{dim_date},
+dim_type = #{dim_type},
+dim_direc = #{dim_direc},
+note = #{note}
+where dim_id = #{dim_id} and emp_id = #{employee.emp_id}
+</update>
+
+<!-- 通过id查询在职员工 -->
+<select id="selectDimission_not_ById" parameterType="int" resultMap="employeeInfoMap">
+SELECT employee.emp_id,emp_name,emp_sex,birthday,dep_name,post_name,entry_date,work_date,work_type,nation,emp_phone,email
+from employee,department,post
+where employee.dep_id = department.dep_id and employee.post_id = post.post_id and employee.emp_id not in(select emp_id from dimission)
+and employee.emp_id=#{intId}
+</select>
+
+
+
+
+
+<!--插入员工进离职表 -->
+<insert id="addDimission" parameterType="Dimission">
+INSERT into dimission
+(emp_id,dim_date,dim_type,dim_direc,note)
+values
+(#{employee.emp_id},#{dim_date},#{dim_type},#{dim_direc},#{note})
+</insert>
+
+
+</mapper>

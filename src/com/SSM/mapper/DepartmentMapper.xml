@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace:名称空间（跟当前文件同名的接口文件的全限定名） -->
+<mapper namespace="com.SSM.mapper.DepartmentMapper">
+	
+	<resultMap type="Department" id="departmentInfoMap">
+		<!-- 主键映射 -->
+		<id column="dep_id" property="dep_id"/>
+		<!-- 其他属性映射 -->
+		<result column="dep_name" property="dep_name"/>
+		<result column="dep_type" property="dep_type"/>
+		<result column="dep_phone" property="dep_phone"/>
+		<result column="dep_far" property="dep_far"/>
+		<result column="dep_describe" property="dep_describe"/>
+		<result column="dep_sup" property="dep_sup"/>
+		<result column="estdate" property="estdate"/>
+		<!-- 包含的集合映射关系 -->
+		 <collection property="employeeList" ofType="Employee">
+		 	<id column="emp_id" property="emp_id"></id>
+		 	<result column="emp_name" property="emp_name"/>
+			<result column="emp_sex" property="emp_sex"/>
+			<result column="birthday" property="birthday"/>
+			<result column="entry_date" property="entry_date"/>
+			<result column="work_date" property="work_date"/>
+			<result column="work_type" property="work_type"/>
+			<result column="nation" property="nation"/>
+			<result column="emp_phone" property="emp_phone"/>
+			<result column="email" property="email"/>
+			
+				<!-- 包含的对象映射关系 -->
+				<association property="post" javaType="Post">
+					<id column="post_id" property="post_id"></id>
+		 			<result column="post_name" property="post_name"/>
+				</association>
+		 </collection>
+	</resultMap>
+	
+	<!-- 显示所有部门信息 -->
+	<select id="selectAllDepartment" resultType="Department">
+		select * from department
+	</select>
+	
+	<!-- 查询部门 -->
+	<select id="selectDepartment" parameterType="int" resultMap="departmentInfoMap">
+		SELECT * FROM department WHERE dep_id = #{dep_id}
+	</select>
+	
+	<!-- 新建部门 -->
+	<insert id="addDepartment" parameterType="Department">
+		insert 
+		into department(dep_name,dep_type,dep_phone,dep_far,dep_describe,dep_sup,estdate)
+		values(#{dep_name},#{dep_type},#{dep_phone},#{dep_far},#{dep_describe},#{dep_sup},#{estdate})
+	</insert>
+	
+	<!-- 查询修改前的部门信息 -->
+	<select id="selectDepartmentById_update" parameterType="int" resultMap="departmentInfoMap">
+	SELECT dep_id,dep_name,dep_type,dep_phone,dep_far,dep_describe,dep_sup,estdate
+    from department
+	where dep_id=#{dep_id}
+    </select>
+    
+	<!-- 修改部门 -->
+	<update id="updateDepartment" parameterType="Department">
+		update department
+		set dep_id=#{dep_id},dep_name=#{dep_name},
+		dep_type=#{dep_type},dep_phone=#{dep_phone},
+		dep_far=#{dep_far},dep_describe=#{dep_describe},
+		dep_sup=#{dep_sup},estdate=#{estdate}
+		where dep_id = #{dep_id}
+	</update>
+	
+	<!-- 根据部门id删除部门 -->
+	<delete id="deleteDepartment" parameterType="int">
+		delete
+		from department
+		where dep_id = #{dep_id}
+	</delete>
+	
+	<!-- 根据部门id查询部门下所有员工 -->
+	<select id="selectDepartmentAllEmployee" resultType="int" resultMap="departmentInfoMap">
+		select employee.emp_id,emp_name,emp_sex,birthday,dep_name,post_name,entry_date,work_date,work_type,nation,emp_phone,email
+		from department,employee,post
+		where employee.dep_id = department.dep_id AND employee.post_id = post.post_id and department.dep_id= #{dep_id}
+	</select>
+
+</mapper>

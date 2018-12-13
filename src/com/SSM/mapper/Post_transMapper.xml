@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.SSM.mapper.Post_transMapper">
+		
+		<!-- 已调转信息 -->
+		<resultMap type="Post_trans" id="post_transInfoMap">
+		<!-- 主键映射 -->
+		<id column="post_trans_id" property="post_trans_id"/>
+		<!-- 其他属性映射 -->
+		<result column="trans_type" property="trans_type"/>
+		<result column="trans_reason" property="trans_reason"/>
+		<result column="note" property="note"/>
+		<result column="trans_date" property="trans_date"/>
+		<!-- 包含的对象映射关系 -->
+		<!-- property：类中对象的名字   javaType：该对象的类型，可以用简写类型 -->
+		<association property="employee" javaType="Employee">
+			<id column="emp_id" property="emp_id"/>
+			<result column="emp_name" property="emp_name"/>
+		</association>
+		<association property="post" javaType="Post">
+			<id column="after_post" property="post_id"/>
+			<result column="post_name" property="post_name"/>
+		</association>
+	</resultMap>
+	<!-- 查询所有岗位调转信息 ,已调转信息-->
+	<select id="selectAllPost_trans" resultMap="post_transInfoMap">
+		select post_trans_id,employee.emp_id,employee.emp_name,post_name,trans_type,trans_reason,note,trans_date
+		 from post_trans,employee,post 
+		 where post_trans.emp_id=employee.emp_id and post_trans.after_post=post.post_id
+	</select>
+	<!-- 通过员工编号查询岗位调转信息,已调转信息 -->
+	<select id="selectEmp_idById" parameterType="int" resultMap="post_transInfoMap">
+			select post_trans_id,employee.emp_id,emp_name,post_name,trans_type,trans_reason,note,trans_date
+		 from post_trans,employee,post 
+		 where post_trans.emp_id=employee.emp_id and post_trans.after_post=post.post_id 
+		 and employee.emp_id= #{id}
+	</select>
+	<!-- 通过岗位调转信息id删除岗位调转信息 -->
+	<delete id="deletePost_transById" parameterType="int">
+		delete from post_trans where post_trans_id=#{id}
+	</delete>
+	<!-- 更新岗位调转信息，先查再修改 -->
+	<select id="selectPost_transById" parameterType="int" resultMap="post_transInfoMap">
+		select * from post_trans,employee,post
+		where post_trans.emp_id=employee.emp_id and post_trans.after_post=post.post_id
+		 and post_trans_id=#{id}
+	</select>
+	<update id="updatePost_trans" parameterType="post_trans">
+		update post_trans set 
+		emp_id =#{employee.emp_id},after_post = #{post.post_id},trans_type = #{trans_type},
+		trans_reason = #{trans_reason},note = #{note},trans_date = #{trans_date} 
+		where post_trans_id = #{post_trans_id};
+	</update>
+	
+	
+	<!-- 准备调转信息 -->
+	<resultMap type="Employee" id="employeeInfoMap">
+		<!-- 主键映射 -->
+		<id column="emp_id" property="emp_id"/>
+		<!-- 其他属性映射 -->
+		<result column="emp_name" property="emp_name"/>
+		<result column="emp_sex" property="emp_sex"/>
+		<result column="birthday" property="birthday"/>
+		<result column="entry_date" property="entry_date"/>
+		<result column="work_date" property="work_date"/>
+		<result column="work_type" property="work_type"/>
+		<result column="nation" property="nation"/>
+		<result column="emp_phone" property="emp_phone"/>
+		<result column="email" property="email"/>
+		  <!-- 包含的对象映射关系 -->
+		   <!-- property：类中对象的名字   javaType：该对象的类型，可以用简写类型 -->
+		<association property="department" javaType="Department">
+			<id column="dep_id" property="dep_id"/>
+			<result column="dep_name" property="dep_name"/>
+		</association>
+		<association property="post" javaType="Post">
+			<id column="post_id" property="post_id"/>
+			<result column="post_name" property="post_name"/>
+		</association> 
+	</resultMap>
+	<!-- 查询部分员工信息 ，准备调转信息-->
+	<select id="selectSomeEmployee" resultMap="employeeInfoMap">
+	SELECT emp_id,emp_name,post_name
+	from employee,department,post
+	where employee.dep_id = department.dep_id and employee.post_id = post.post_id 
+	and emp_id not in(SELECT emp_id from dimission )
+	</select>
+	<!-- 通过员工编号查询员工信息,准备调转信息 -->
+	<select id="selectEmpIdById" parameterType="int" resultMap="employeeInfoMap">
+	SELECT emp_id,emp_name,post_name
+	from employee,department,post
+	where employee.dep_id = department.dep_id and employee.post_id = post.post_id 
+	and emp_id not in(SELECT emp_id from dimission )
+	and emp_id=#{id}
+	</select>
+	<!--  添加岗位调转信息，查询员工信息中的调转按钮-->
+	<!-- 先查员工编号当前岗位再进行修改 -->
+	<select id="selectNowPostById" parameterType="int" resultMap="employeeInfoMap">
+		select * from employee,post
+		where  employee.post_id = post.post_id 
+		 and employee.emp_id = #{id}
+	</select>
+	<insert id="addPost_trans" parameterType="post_trans">
+		insert into post_trans 
+		(post_trans_id,emp_id,after_post,trans_type,trans_reason,note,trans_date)
+		values
+		(#{post_trans_id},#{employee.emp_id},#{post.post_id},#{trans_type},#{trans_reason},#{note},#{trans_date})
+	</insert>
+	<!--  更新员工信息，查询员工信息中的调转按钮-->
+	<update id="updateEmployeeById" parameterType="post_trans">
+	update employee set 
+	post_id = #{post.post_id}
+	where emp_id = #{employee.emp_id}
+	</update>
+</mapper>

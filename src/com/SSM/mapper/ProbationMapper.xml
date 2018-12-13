@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace:名称空间（跟当前文件同名的接口文件的全限定名） -->
+<mapper namespace="com.SSM.mapper.ProbationMapper">
+
+<resultMap type="Probation" id="ProbationInfoMap">
+	<!-- 主键映射 -->
+	<id column="pro_id" property="pro_id"/>
+	<!-- 其他属性映射 -->
+	<result column="start_date" property="start_date"/>
+	<result column="end_date" property="end_date"/>
+	<result column="evaluate" property="evaluate"/>
+	<result column="result" property="result"/>
+	<result column="note" property="note"/>
+	   <!-- 包含的对象映射关系 -->
+	   <!-- property：类中对象的名字   javaType：该对象的类型，可以用简写类型 -->
+		<association property="employee" javaType="Employee">
+		<id column="emp_id" property="emp_id"/>
+		<result column="emp_name" property="emp_name"/>
+			
+			<association property="department" javaType="Department">
+			<id column="dep_id" property="dep_id"/>
+			<result column="dep_name" property="dep_name"/>
+			</association>
+			
+			<association property="post" javaType="Post">
+			<id column="post_id" property="post_id"/>
+			<result column="post_name" property="post_name"/>
+			</association> 
+		</association>
+</resultMap>
+	
+	
+<select id="selectAllProbation" resultMap="ProbationInfoMap">
+select pro_id,probation.emp_id,emp_name,dep_name,post_name,start_date,end_date,evaluate,result,note
+from employee,department,post,probation
+where employee.dep_id = department.dep_id and 
+employee.post_id = post.post_id and employee.emp_id = probation.emp_id
+</select>
+
+<select id="selectProbationById" parameterType="Probation" resultMap="ProbationInfoMap">
+select pro_id,probation.emp_id,emp_name,dep_name,post_name,start_date,end_date,evaluate,result,note
+from employee,department,post,probation
+where employee.dep_id = department.dep_id and 
+employee.post_id = post.post_id and employee.emp_id = probation.emp_id
+and pro_id = #{pro_id}
+</select>
+
+<select id="selectProbationDateById" parameterType="int" resultType="date">
+select end_date
+from probation
+where pro_id = #{pro_id}
+</select>
+
+<update id="updateProbationDateByID" parameterType="Probation">
+update probation
+set end_date = #{end_date},
+result = '2'
+where pro_id = #{pro_id}
+</update>
+
+<update id="updateProbation_pass" parameterType="Probation">
+	update probation set result = #{result} where pro_id = #{pro_id}
+</update>
+
+<!-- 查询已经转正员工试用期信息 -->
+<select id="selectPassEmployee" resultMap="ProbationInfoMap">
+SELECT pro_id,employee.emp_id,emp_name,dep_name,post_name,start_date,end_date,evaluate,result,note
+from probation,employee,department,post
+where employee.dep_id = department.dep_id and employee.post_id = post.post_id
+and probation.emp_id =employee.emp_id and result = '1'
+</select>
+
+<!-- 插入试用期信息 -->
+<insert id="addProbationById" parameterType="Probation">
+	INSERT into probation
+	(emp_id,start_date,end_date,evaluate,note)
+	values(#{employee.emp_id},#{start_date},#{end_date},#{evaluate},#{note})
+</insert>
+
+
+</mapper>

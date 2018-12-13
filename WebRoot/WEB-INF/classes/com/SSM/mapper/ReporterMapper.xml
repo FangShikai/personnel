@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace:名称空间（跟当前文件同名的接口文件的全限定名） -->
+<mapper namespace="com.SSM.mapper.ReporterMapper">
+
+<!-- 离职信息映射 -->
+<resultMap type="dimission" id="dimissionInfoMap">
+<!-- 主键映射 -->
+<id column="dim_id" property="dim_id"/>
+<!-- 其他属性映射 -->
+<result column="dim_date" property="dim_date"/>
+<result column="dim_type" property="dim_type"/>
+<result column="dim_direc" property="dim_direc"/>
+<result column="note" property="note"/>
+
+       <!-- 包含的对象映射关系 -->
+	   <!-- property：类中对象的名字   javaType：该对象的类型，可以用简写类型 -->
+<association property="employee" javaType="employee">
+<id column="emp_id" property="emp_id"/>
+<result column="emp_name" property="emp_name"/>
+<result column="emp_sex" property="emp_sex"/>
+<result column="birthday" property="birthday"/>
+<result column="entry_date" property="entry_date"/>
+<result column="work_date" property="work_date"/>
+<result column="work_type" property="work_type"/>
+<result column="nation" property="nation"/>
+<result column="emp_phone" property="emp_phone"/>
+<result column="email" property="email"/>
+
+	<association property="department" javaType="department">
+	<id column="dep_id" property="dep_id"/>
+	<result column="dep_name" property="dep_name"/>
+	</association>
+	
+	<association property="post" javaType="Post">
+	<id column="post_id" property="post_id"/>
+	<result column="post_name" property="post_name"/>
+	</association>
+	
+</association>
+</resultMap>
+
+<!-- 在职员工映射 -->
+<resultMap type="Employee" id="employeeInfoMap">
+		<!-- 主键映射 -->
+		<id column="emp_id" property="emp_id"/>
+		<!-- 其他属性映射 -->
+		<result column="emp_name" property="emp_name"/>
+		<result column="emp_sex" property="emp_sex"/>
+		<result column="birthday" property="birthday"/>
+		<result column="entry_date" property="entry_date"/>
+		<result column="work_date" property="work_date"/>
+		<result column="work_type" property="work_type"/>
+		<result column="nation" property="nation"/>
+		<result column="emp_phone" property="emp_phone"/>
+		<result column="email" property="email"/>
+		  <!-- 包含的对象映射关系 -->
+		   <!-- property：类中对象的名字   javaType：该对象的类型，可以用简写类型 -->
+		<association property="department" javaType="Department">
+			<id column="dep_id" property="dep_id"/>
+			<result column="dep_name" property="dep_name"/>
+		</association>
+		<association property="post" javaType="Post">
+			<id column="post_id" property="post_id"/>
+			<result column="post_name" property="post_name"/>
+		</association> 
+</resultMap>
+
+<!-- 岗位调转映射 -->
+<resultMap type="Post_trans" id="post_transInfoMap">
+		<!-- 主键映射 -->
+		<id column="post_trans_id" property="post_trans_id"/>
+		<!-- 其他属性映射 -->
+		<result column="trans_reason" property="trans_reason"/>
+		<result column="trans_date" property="trans_date"/>
+		<!-- 包含的对象映射关系 -->
+		<!-- property：类中对象的名字   javaType：该对象的类型，可以用简写类型 -->
+		
+		<association property="post" javaType="Post">
+			<id column="after_post" property="post_id"/>
+			<result column="post_name" property="post_name"/>
+		</association>
+		
+		<association property="employee" javaType="Employee">
+			<id column="emp_id" property="emp_id"/>
+			<result column="emp_name" property="emp_name"/>
+			<result column="emp_sex" property="emp_sex"/>
+			
+			<association property="post" javaType="Post">
+			<id column="post_id" property="post_id"/>
+			<result column="post_name" property="post_name"/>
+			</association>
+			
+			<association property="department" javaType="Department">
+			<id column="after_dep" property="dep_id"/>
+			<result column="dep_name" property="dep_name"/>
+			</association>
+		</association>
+		
+	</resultMap>
+
+
+<!-- 部门调转映射 -->
+<resultMap type="Dep_trans" id="dep_transInfoMap">
+		<!-- 主键映射 -->
+		<id column="dep_trans_id" property="dep_trans_id"/>
+		<!-- 其他属性映射 -->
+		<result column="trans_type" property="trans_type"/>
+		<result column="trans_reason" property="trans_reason"/>
+		<result column="note" property="note"/>
+		<result column="trans_date" property="trans_date"/>
+		 <!-- 包含的对象映射关系 -->
+		   <!-- property：类中对象的名字   javaType：该对象的类型，可以用简写类型 -->
+		<association property="employee" javaType="Employee">
+			<id column="emp_id" property="emp_id"/>
+			<result column="emp_name" property="emp_name"/>
+			<result column="emp_sex" property="emp_sex"/>
+			
+			<association property="department" javaType="Department">
+			<id column="dep_id" property="dep_id"/>
+			<result column="dep_name" property="dep_name"/>
+			</association>
+			
+			<association property="post" javaType="Post">
+			<id column="post_id" property="post_id"/>
+			<result column="post_name" property="post_name"/>
+			</association>
+		</association>
+		
+		<association property="department" javaType="Department">
+			<id column="after_dep" property="dep_id"/>
+			<result column="dep_name" property="dep_name"/>
+		</association> 
+</resultMap>
+
+<!-- 查询员工 -->
+<select id="selectNewEmployeeReport" parameterType="SelectDate" resultMap="employeeInfoMap">
+	SELECT emp_id,emp_name,emp_sex,dep_name,post_name,entry_date
+	from employee,department,post
+	where employee.dep_id = department.dep_id and employee.post_id = post.post_id and entry_date BETWEEN #{begin_date} and #{end_date}
+</select>
+
+<!-- 查询离职员工 -->
+<select id="selectDimEmployeeReport" parameterType="SelectDate" resultMap="dimissionInfoMap">
+	SELECT dim_id,emp_name,emp_sex,dep_name,post_name,dim_date,dim_type
+	from employee,department,post,dimission
+	where employee.dep_id = department.dep_id and employee.post_id = post.post_id 
+	and employee.emp_id = dimission.emp_id and dim_date BETWEEN #{begin_date} and #{end_date}
+</select>
+
+
+<!-- 查询岗位调转员工报表 -->
+<select id="selectPost_transReport" parameterType="SelectDate" resultMap="post_transInfoMap">
+	select post_trans_id,dep_name,employee.post_id,post_name,employee.emp_name,employee.emp_sex,trans_date,trans_reason
+	from post_trans,employee,post,department 
+	where post_trans.emp_id=employee.emp_id and post_trans.after_post=post.post_id 
+	and employee.dep_id = department.dep_id and trans_date BETWEEN #{begin_date} and #{end_date}
+</select>
+
+<!-- 查询部门调转员工报表 -->
+<select id="selectDep_transReport"  parameterType="SelectDate" resultMap="dep_transInfoMap">
+	select dep_trans_id,post_name,employee.dep_id,dep_name,emp_name,emp_sex,trans_date,trans_reason
+	from dep_trans,employee,post,department
+	where dep_trans.emp_id=employee.emp_id and dep_trans.after_dep=department.dep_id 
+	and employee.post_id = post.post_id and trans_date BETWEEN #{begin_date} and #{end_date}
+</select>
+</mapper>
